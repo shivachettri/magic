@@ -15,36 +15,36 @@ import json
 config_yaml = '''
 all:
   git:
-    g_git: "github" # "github" or "gitlab"
-    project_id: '42403605'
-    g_email: "chettri@live.com"
-    g_dev_repo: "https://github.com/AnjaniGourisaria/codeigniter3.git" # url convention for git is https://{hub/lab}.com/{user}/{repo}.git
-    g_prod_repo: "" # url convention for git is https://{hub/lab}.com/{user}/{repo}.git
-    g_username: "AnjaniGourisaria"
-    g_token: "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"
+    g_git: ""       # Repo. Type : Accepted Values: "github" or "gitlab"
+    project_id: ''  # If "gitlab", then put GitLab Project ID
+    g_email: ""     # GitHub Username (email)
+    g_dev_repo: ""  # Dev. Environment - GitHub full Repo. URL (with .git extension)
+    g_prod_repo: "" # Prod. Environemnt - GitHub full Repo. URL (with .git extension)
+    g_username: ""  # GitHub Username
+    g_token: ""     # GitHub Token
 
   nginx:
-    n_domain: "code.com"
-    n_sub_domain: ""
-    n_folder: "code.com"
+    n_domain: ""      # Domain Name
+    n_sub_domain: ""  # Sub-Domain Name (ex. "www") - for Nginx Configuration
+    n_folder: ""      # Directory Name at /var/www
 
   sql:
-    s_use_existing_user: "yes" # to continue with same sql credentials choose "yes" if not then "no" 
-    s_username: "testing"
-    s_password: "root@P21222"
-    s_database: "testing"
+    s_use_existing_user: "yes"  # Create MySQL User : Accepted values: "yes" / "no" 
+    s_username: ""              # MySQL Username
+    s_password: ""              # MySQL Password
+    s_database: ""              # MySQL Database Name
 
 
-  sql_root_credentials:  # if new machine directly run the auto-hosting.py
+  sql_root_credentials:   # MySQL Root Credentials
     sr_port: "3306"
     sr_host: "localhost"
     sr_user: "root"
-    sr_passwd: "" # After installation of mysql the password will be ""
+    sr_passwd: ""
 
   custom:
-    c_protocol: "https://" # for config.php
-    c_choose: "no" # to configure ssh so you can login
-    c_do_mysql_secure_installation: "no" # to setup mysql root password "yes" or "no" and it uses sql_root_credentials   if you want to change password you can use it '''
+    c_protocol: "https://"    # CodeIgniter HTTP Protocol Configuration 
+    c_choose: "no"            # SSH Access
+    c_do_mysql_secure_installation: "no"  # MySQL Secure Configuration
 
 
 config = yaml.load(config_yaml, Loader=yaml.FullLoader)
