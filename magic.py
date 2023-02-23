@@ -16,23 +16,23 @@ config_yaml = '''
 all:
   git:
     g_git: "github" # "github" or "gitlab"
-    project_id: '' # for gitlab
-    g_email: ""
-    g_dev_repo: "" # url convention for git is https://{hub/lab}.com/{user}/{repo}.git
+    project_id: '42403605'
+    g_email: "chettri@live.com"
+    g_dev_repo: "https://github.com/AnjaniGourisaria/codeigniter3.git" # url convention for git is https://{hub/lab}.com/{user}/{repo}.git
     g_prod_repo: "" # url convention for git is https://{hub/lab}.com/{user}/{repo}.git
-    g_username: ""
-    g_token: ""
+    g_username: "AnjaniGourisaria"
+    g_token: "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"
 
   nginx:
-    n_domain: ""
+    n_domain: "code.com"
     n_sub_domain: ""
-    n_folder: ""
+    n_folder: "code.com"
 
   sql:
     s_use_existing_user: "yes" # to continue with same sql credentials choose "yes" if not then "no" 
-    s_username: ""
-    s_password: ""
-    s_database: ""
+    s_username: "testing"
+    s_password: "root@P21222"
+    s_database: "testing"
 
 
   sql_root_credentials:  # if new machine directly run the auto-hosting.py
@@ -471,6 +471,7 @@ def cleanup(n_folder,s_database,g_dev_repo):
         imports="import os\n"
         config=imports+config
         os.system(f"echo '{config}' > /root/backup.py")
+    os.system(f"cd /var/www/{n_folder} && git branch -m main && git checkout main && git add . && git commit -m '....' && git push")
 
 
 def setup(ipv4='',ipv6=''):
@@ -490,6 +491,7 @@ def setup(ipv4='',ipv6=''):
     logging.info(f"IPv4 address: {ipv4}")
     if(ipv6!=''): logging.info(f"IPv6 address: {ipv6}")
     logging.info("\033[32m Make sure you setup a cronjob : crontab -e \033[0m")
+    logging.info(" \033[32m For Morning 9 and evening 9 do :  0 9,21 * * * python3 ~/backup.py | Once a day: 0 0 * * * python3 ~/backup.py \033[0m]")
     logging.info("\033[32m Setup complete \033[0m")
 
 
