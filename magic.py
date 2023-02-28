@@ -516,7 +516,7 @@ def main():
     else:
         logging.error(f"Unsupported architecture: {arch}")
         return
-    #os.system("sudo apt update && sudo apt full-upgrade -y && sudo apt install -y " + packages)
+    os.system("sudo apt update && sudo apt full-upgrade -y && sudo apt install -y " + packages)
 
     setup(ipv4,ipv6)
 if __name__ == '__main__':
