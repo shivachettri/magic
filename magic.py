@@ -100,8 +100,8 @@ def setup_sql(sql):
     logging.info("################################################################################################################################################################################  Setup SQL #")
     
     setup_sql_config(sql['s_database'], sql['s_username'], sql['s_password'])
-    os.system("sudo mysql < /tmp/{0}.sql".format(sql['s_database']))
-    os.system("sudo rm -rf /tmp/{0}.sql".format(sql['s_database']))
+    os.system("sudo mysql  --defaults-extra-file=$HOME/.sql < /tmp/{0}.sql".format(sql['s_database']))
+    os.system("sudo rm -rf /tmp/{0}.sql ".format(sql['s_database']))
 
 
 def setup_nginx_config(n_domain, n_folder, n_sub_domain,n_file):
@@ -244,8 +244,8 @@ def ssh_keygen(c_choose, ipv4, ipv6):
 def execute_sql_query(query, host, port, user, password, flag=False):
     try:
         with open(os.path.join(os.environ['HOME'], '.sql'), 'w') as f:
-            f.write(f"[client]\nuser={user}\npassword={password}\n")
-        cmd = f"mysql --defaults-extra-file=$HOME/.sql -h {host} -P {port} -e '{query}'"
+            f.write(f"[client]\nuser={user}\npassword={password}\nhost={host}\nport={port}\n")
+        cmd = f"mysql --defaults-extra-file=$HOME/.sql  -e '{query}'"
         output = subprocess.check_output(cmd, shell=True).decode().strip()
         if (flag):
             return output.split("\n")[1]
@@ -454,7 +454,7 @@ def get_sql(n_folder, s_database):
             if choice.lower() == "y":
                 # User wants to continue, do something with the path here
                 print(f"Processing SQL file at: {path}")
-                os.system(f"sudo mysql {s_database} < {path}")
+                os.system(f"sudo mysql  --defaults-extra-file=$HOME/.sql {s_database}  < {path}")
                 continue
                 # Example: execute the SQL file on the specified database
             else:
@@ -463,6 +463,7 @@ def get_sql(n_folder, s_database):
 
 def cleanup(n_folder,s_database,g_dev_repo):
     os.system(f"rm -rf /tmp/{n_folder}")
+    g_dev_repo = g_dev_repo
     os.system(f"rm -rf /var/www/{n_folder}/{g_dev_repo}")
     config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m 'Back Up'  && git push\")"
     if(os.path.exists('/root/backup.py')):
