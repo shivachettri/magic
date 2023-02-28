@@ -45,7 +45,7 @@ all:
     c_protocol: "https://"    # CodeIgniter HTTP Protocol Configuration 
     c_choose: "no"            # SSH Access
     c_do_mysql_secure_installation: "no"  # MySQL Secure Configuration
-
+'''
 
 config = yaml.load(config_yaml, Loader=yaml.FullLoader)
 
