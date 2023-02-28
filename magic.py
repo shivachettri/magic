@@ -510,7 +510,7 @@ def main():
             pass
 
     if arch == "x86_64":
-        packages = "nginx mysql-server php-fpm php-mysql certbot git"
+        packages = "nginx mysql-server php-fpm php-mysql certbot git python3-certbot-nginx"
     elif arch == "armv6l":
         packages = "nginx mariadb-server mariadb-client php-fpm php-mysql certbot git"
     else:
