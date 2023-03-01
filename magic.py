@@ -467,13 +467,13 @@ def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
     os.system(f"rm -rf /var/www/{n_folder}/{g_dev_repo}")
     choose=input("do you want to backup y|n")
     if(choose=='y'):
-        config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m 'Back Up'  && git push\")"
-            if(os.path.exists('/root/backup.py')):
-                os.system(f"echo '{config}' >> /root/backup.py")
-            else:
-                imports="import os\n"
-                config=imports+config
-                os.system(f"echo '{config}' > /root/backup.py")
+    config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m 'Back Up'  && git push\")"
+        if(os.path.exists('/root/backup.py')):
+            os.system(f"echo '{config}' >> /root/backup.py")
+        else:
+            imports="import os\n"
+            config=imports+config
+            os.system(f"echo '{config}' > /root/backup.py")
     if(g_prod_repo != '')  
         os.system(f"cd /var/www/{n_folder} && git branch -m main && git checkout main && git add . && git commit -m '....' && git push")
 
