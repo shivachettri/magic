@@ -463,7 +463,7 @@ def get_sql(n_folder, s_database):
 
 def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
     os.system(f"rm -rf /tmp/{n_folder}")
-    g_dev_repo = g_dev_repo
+    g_dev_repo = g_dev_repo.split("/")[-1][:-4]
     os.system(f"rm -rf /var/www/{n_folder}/{g_dev_repo}")
     choose=input("do you want to backup y|n")
     if(choose=='y'):
@@ -489,7 +489,7 @@ def setup(ipv4='',ipv6=''):
 
     if(config['all']['custom']['c_choose'] =='yes'): ssh_keygen(config['all']['custom']['c_choose'],ipv4,ipv6)
     if(config['all']['custom']['c_do_mysql_secure_installation'] == "yes"): mysql_secure_installation(config['all']['sql_root_credentials'])
-    cleanup(config['all']['nginx']['n_folder'],config['all']['sql']['s_database'],config['all']['git']['g_dev_repo'],all['git']['g_prod_repo'])
+    cleanup(config['all']['nginx']['n_folder'],config['all']['sql']['s_database'],config['all']['git']['g_dev_repo'],config['all']['git']['g_prod_repo'])
     logging.info("To Flush Clouldfare DNS: https://1.1.1.1/purge-cache/")
     logging.info("To Flush Google DNS: https://developers.google.com/speed/public-dns/cache")
     logging.info(f"IPv4 address: {ipv4}")
