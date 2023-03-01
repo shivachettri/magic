@@ -461,18 +461,21 @@ def get_sql(n_folder, s_database):
                 # User doesn't want to continue, skip to next iteration of the loop
                 continue
 
-def cleanup(n_folder,s_database,g_dev_repo):
+def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
     os.system(f"rm -rf /tmp/{n_folder}")
     g_dev_repo = g_dev_repo
     os.system(f"rm -rf /var/www/{n_folder}/{g_dev_repo}")
-    config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m 'Back Up'  && git push\")"
-    if(os.path.exists('/root/backup.py')):
-        os.system(f"echo '{config}' >> /root/backup.py")
-    else:
-        imports="import os\n"
-        config=imports+config
-        os.system(f"echo '{config}' > /root/backup.py")
-    os.system(f"cd /var/www/{n_folder} && git branch -m main && git checkout main && git add . && git commit -m '....' && git push")
+    choose=input("do you want to backup y|n")
+    if(choose=='y')
+        config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m 'Back Up'  && git push\")"
+            if(os.path.exists('/root/backup.py')):
+                os.system(f"echo '{config}' >> /root/backup.py")
+            else:
+                imports="import os\n"
+                config=imports+config
+                os.system(f"echo '{config}' > /root/backup.py")
+    if(g_prod_repo != '')  
+        os.system(f"cd /var/www/{n_folder} && git branch -m main && git checkout main && git add . && git commit -m '....' && git push")
 
 
 def setup(ipv4='',ipv6=''):
@@ -486,7 +489,7 @@ def setup(ipv4='',ipv6=''):
 
     if(config['all']['custom']['c_choose'] =='yes'): ssh_keygen(config['all']['custom']['c_choose'],ipv4,ipv6)
     if(config['all']['custom']['c_do_mysql_secure_installation'] == "yes"): mysql_secure_installation(config['all']['sql_root_credentials'])
-    cleanup(config['all']['nginx']['n_folder'],config['all']['sql']['s_database'],config['all']['git']['g_dev_repo'])
+    cleanup(config['all']['nginx']['n_folder'],config['all']['sql']['s_database'],config['all']['git']['g_dev_repo'],all['git']['g_prod_repo'])
     logging.info("To Flush Clouldfare DNS: https://1.1.1.1/purge-cache/")
     logging.info("To Flush Google DNS: https://developers.google.com/speed/public-dns/cache")
     logging.info(f"IPv4 address: {ipv4}")
