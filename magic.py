@@ -474,7 +474,7 @@ def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
             imports="import os\n"
             config=imports+config
             os.system(f"echo '{config}' > /root/backup.py")
-    if(g_prod_repo != ''):  
+    if(g_prod_repo != ''):
         os.system(f"cd /var/www/{n_folder} && git branch -m main && git checkout main && git add . && git commit -m '....' && git push")
 
 
