@@ -16,7 +16,7 @@ config_yaml = '''
 all:
   git:
     g_git: ""       # Repo. Type : Accepted Values: "github" or "gitlab"
-    project_id: ''  # If "gitlab", then put GitLab Project ID
+    project_id: ""  # If "gitlab", then put GitLab Project ID
     g_email: ""     # GitHub Username (email)
     g_dev_repo: ""  # Dev. Environment - GitHub full Repo. URL (with .git extension)
     g_prod_repo: "" # Prod. Environemnt - GitHub full Repo. URL (with .git extension)
@@ -466,7 +466,7 @@ def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
     g_dev_repo = g_dev_repo
     os.system(f"rm -rf /var/www/{n_folder}/{g_dev_repo}")
     choose=input("do you want to backup y|n")
-    if(choose=='y')
+    if(choose=='y'):
         config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m 'Back Up'  && git push\")"
             if(os.path.exists('/root/backup.py')):
                 os.system(f"echo '{config}' >> /root/backup.py")
