@@ -8,7 +8,8 @@ import re
 import fnmatch
 import urllib.request
 import json
-
+import urllib.parse
+import http.cookiejar
 
 # Read configuration from a YAML file
 
@@ -27,6 +28,8 @@ all:
     n_domain: ""      # Domain Name
     n_sub_domain: ""  # Sub-Domain Name (ex. "www") - for Nginx Configuration
     n_folder: ""      # Directory Name at /var/www
+    n_username: "" # Admin User name for checks
+    n_password: "" # Admin Password for checks
 
   sql:
     s_use_existing_user: "yes"  # Create MySQL User : Accepted values: "yes" / "no" 
@@ -478,6 +481,57 @@ def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
         os.system(f"cd /var/www/{n_folder} && git branch -m main && git checkout main && git add . && git commit -m '....' && git push")
 
 
+def check_site(n_folder,username,password,n_domain):
+    logging.info("############################################################################################################################################################################################## Checking Site #")
+
+    with open(f'/var/www/{n_folder}/application/config/routes.php', 'r') as f:
+        routes = f.read()
+
+    urls = []
+    for line in routes.splitlines():
+        if line.startswith('$route[') and '=' in line:
+            parts = line.strip().split('=>')
+            route = parts[0].strip().replace('$route[', '').replace(']', '')
+            url = re.findall(r"['\"]([^'\"]*)['\"]", route)[0]
+            url=url.replace("(:any)", "new")
+            urls.append(url)
+
+    login_data = {
+        'username': username,
+        'password': password,
+    }
+
+    login_url = f'https://{n_domain}/Authentication/authenticate'
+
+    cookie_jar = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
+
+    login_data_encoded = urllib.parse.urlencode(login_data).encode('utf-8')
+    login_response = opener.open(login_url, login_data_encoded)
+
+    content = login_response.read().decode('utf-8')
+    if 'Welcome' in content:
+        logging.info('Login successful')
+    else:
+        logging.info('Login failed')
+
+    errors = []
+    for url in urls:
+        try:
+            response = opener.open(f'https://{n_domain}/{url}?id=0')
+            content = response.read().decode('utf-8')
+            if 'PHP Error' in content:
+                errors.append(f'Error on URL {url}: PHP Error')
+        except urllib.error.URLError as e:
+            errors.append(f'Error on URL {url}: {e}')
+
+    if len(errors) > 0:
+        logging.info('Errors found:')
+        for error in errors:
+            logging.info(error)
+    else:
+        logging.info('No errors found.')
+
 def setup(ipv4='',ipv6=''):
     logging.info("\033[32m Starting Setup \033[0m")
     sys_check(config['all'])
@@ -490,6 +544,9 @@ def setup(ipv4='',ipv6=''):
     if(config['all']['custom']['c_choose'] =='yes'): ssh_keygen(config['all']['custom']['c_choose'],ipv4,ipv6)
     if(config['all']['custom']['c_do_mysql_secure_installation'] == "yes"): mysql_secure_installation(config['all']['sql_root_credentials'])
     cleanup(config['all']['nginx']['n_folder'],config['all']['sql']['s_database'],config['all']['git']['g_dev_repo'],config['all']['git']['g_prod_repo'])
+    os.system(f"sudo certbot --nginx -d {config['all']['nginx']['n_domain']} {config['all']['nginx']['n_sub_domain']}")
+    check_site(config['all']['nginx']['n_folder'],config['all']['nginx']['n_username'],config['all']['nginx']['n_password'],config['all']['nginx']['n_domain'])
+
     logging.info("To Flush Clouldfare DNS: https://1.1.1.1/purge-cache/")
     logging.info("To Flush Google DNS: https://developers.google.com/speed/public-dns/cache")
     logging.info(f"IPv4 address: {ipv4}")
@@ -505,7 +562,7 @@ def main():
         exit()
 
     arch = platform.machine()
-    ipv4 , ipv6 = '',''
+    ipv4 = ipv6 = ''
     try:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             ipv4 = executor.submit(subprocess.check_output, "curl -s ipv4.icanhazip.com", shell=True).result().decode().strip()
