@@ -28,11 +28,11 @@ all:
     n_domain: ""      # Domain Name
     n_sub_domain: ""  # Sub-Domain Name (ex. "www") - for Nginx Configuration
     n_folder: ""      # Directory Name at /var/www
-    n_username: "" # Admin User name for checks
-    n_password: "" # Admin Password for checks
+    n_username: "admin" # Admin User name for checks
+    n_password: "admin" # Admin Password for checks
 
   sql:
-    s_use_existing_user: "yes"  # Create MySQL User : Accepted values: "yes" / "no" 
+    s_use_existing_user: "no"  # Create MySQL User : Accepted values: "yes" / "no"
     s_username: ""              # MySQL Username
     s_password: ""              # MySQL Password
     s_database: ""              # MySQL Database Name
@@ -45,7 +45,7 @@ all:
     sr_passwd: ""
 
   custom:
-    c_protocol: "https://"    # CodeIgniter HTTP Protocol Configuration 
+    c_protocol: "https://"    # CodeIgniter HTTP Protocol Configuration
     c_choose: "no"            # SSH Access
     c_do_mysql_secure_installation: "no"  # MySQL Secure Configuration
 '''
@@ -101,7 +101,7 @@ def setup_sql_config(s_database, s_username, s_password):
 
 def setup_sql(sql):
     logging.info("################################################################################################################################################################################  Setup SQL #")
-    
+
     setup_sql_config(sql['s_database'], sql['s_username'], sql['s_password'])
     os.system("sudo mysql  --defaults-extra-file=$HOME/.sql < /tmp/{0}.sql".format(sql['s_database']))
     os.system("sudo rm -rf /tmp/{0}.sql ".format(sql['s_database']))
@@ -138,7 +138,7 @@ def setup_nginx_config(n_domain, n_folder, n_sub_domain,n_file):
 
 
 def setup_nginx(nginx):
-    logging.info("################################################################################################################################################################################  Setup Nginx #")    
+    logging.info("################################################################################################################################################################################  Setup Nginx #")
     path = "/var/run/php/"
     pattern = re.compile(r"php\d+\.\d+-fpm\.sock$")
     for filename in os.listdir(path):
@@ -155,13 +155,13 @@ def prod(git,n_folder,g_dev_repo):
 
     project_dir_prod = os.path.join('/tmp', n_folder)
     os.makedirs(project_dir_prod, exist_ok=True)
-    
+
     subprocess.run(f"git clone {git['g_prod_repo']}", cwd=project_dir_prod, shell=True)
     subprocess.run(f"rm -rf /var/www/{n_folder}/.git && mv {project_dir_prod}/{g_prod_repo}/.git /var/www/{n_folder}/", shell=True)
 
 
 def setup_git(git,n_folder):
-    
+
     logging.info("###################################################################################################################################################################################### Setup Git #")
     subprocess.call('git config --global credential.helper store', shell=True)
     subprocess.call("echo 'protocol=https\nhost={2}.com\nusername={0}\npassword={1}\n' | git credential approve".format(git['g_username'], git['g_token'],git['g_git']), shell=True)
@@ -177,7 +177,7 @@ def setup_git(git,n_folder):
 
     subprocess.run(f"git clone {git['g_dev_repo']}", cwd=project_dir, shell=True)
     subprocess.run(f"rsync -a --remove-source-files /var/www/{n_folder}/{g_dev_repo}/ /var/www/{n_folder}/ ",shell=True)
-    
+
     if(git['g_prod_repo'] != ''):
         prod(git,n_folder,g_dev_repo)
 
@@ -331,7 +331,7 @@ def sys_check(all):
             github_data = json.loads(github_resp.read().decode('utf-8'))
             if "login" in github_data:
                 check_repo_exists(all['git']['g_git'],all['git']['g_username'],g_dev_repo,all['git']['g_token'])
-        
+
         except urllib.error.HTTPError as e:
             logging.error(f'Github: Error {e.code}: {e.reason}, Status Code: {e.status}')
             err = "1"
@@ -375,8 +375,8 @@ def sys_check(all):
     elif (s1):
         logging.warning(f"Sql: sql.s_database: Database {all['sql']['s_database']} exists")
         err = "1"
- 
-    
+
+
     del sql
 
 
@@ -408,7 +408,7 @@ def sys_check(all):
     if ((os.path.exists(f"/etc/nginx/sites-available/{all['nginx']['n_domain']}") or os.path.islink(f"/etc/nginx/sites-enabled/{all['nginx']['n_domain']}"))):
         logging.warning(f"The directory /etc/nginx/sites-available or /etc/nginx/sites-enabled/ does  exists '{all['nginx']['n_domain']}' .")
         err = "1"
-    
+
 
 
     if (err == "1"):
@@ -421,7 +421,7 @@ def generate_password():
     while True:
         # Generate a random string of 8 characters
         password = ''.join(secrets.choice(string.ascii_letters + string.digits + string.punctuation) for i in range(8))
-        
+
         # Check if the password meets the criteria
         if any(c.islower() for c in password) and any(c.isupper() for c in password) and any(c.isdigit() for c in password) and any(c in string.punctuation for c in password):
             return password
@@ -440,7 +440,7 @@ def mysql_secure_installation(sql):
 
     for cmd in commands:
         execute_sql_query(cmd, sql['sr_host'], sql['sr_port'], sql['sr_user'], sql['sr_passwd'])
-        
+
     logging.info(f"custom.c_do_mysql_secure_installation \033[32m Passowrd set for root is :  {mysql_root_password}  \033[0m")
 
 
@@ -464,13 +464,16 @@ def get_sql(n_folder, s_database):
                 # User doesn't want to continue, skip to next iteration of the loop
                 continue
 
-def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
+def cleanup(ipv4,n_folder,s_database,g_dev_repo,g_prod_repo):
+    import datetime
+    now = datetime.datetime.now()
+    commit= "IP " + ipv4 + " " + now.strftime("%Y-%m-%d %H:%M:%S")
     os.system(f"rm -rf /tmp/{n_folder}")
     g_dev_repo = g_dev_repo.split("/")[-1][:-4]
     os.system(f"rm -rf /var/www/{n_folder}/{g_dev_repo}")
-    choose=input("do you want to backup y|n")
+    choose=input("Do you want to backup? (y/n): ")
     if(choose=='y'):
-        config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m 'Back Up'  && git push\")"
+        config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m '{commit}'  && git push\")"
         if(os.path.exists('/root/backup.py')):
             os.system(f"echo '{config}' >> /root/backup.py")
         else:
@@ -478,10 +481,10 @@ def cleanup(n_folder,s_database,g_dev_repo,g_prod_repo):
             config=imports+config
             os.system(f"echo '{config}' > /root/backup.py")
     if(g_prod_repo != ''):
-        os.system(f"cd /var/www/{n_folder} && git branch -m main && git checkout main && git add . && git commit -m '....' && git push")
+        os.system(f"cd /var/www/{n_folder} && git add . && git commit -m 'Prod {commit}' && git branch -M master  && git push")
 
 
-def check_site(n_folder,username,password,n_domain):
+def check_site(ipv4,n_folder,username,password,n_domain):
     logging.info("############################################################################################################################################################################################## Checking Site #")
 
     with open(f'/var/www/{n_folder}/application/config/routes.php', 'r') as f:
@@ -543,9 +546,9 @@ def setup(ipv4='',ipv6=''):
 
     if(config['all']['custom']['c_choose'] =='yes'): ssh_keygen(config['all']['custom']['c_choose'],ipv4,ipv6)
     if(config['all']['custom']['c_do_mysql_secure_installation'] == "yes"): mysql_secure_installation(config['all']['sql_root_credentials'])
-    cleanup(config['all']['nginx']['n_folder'],config['all']['sql']['s_database'],config['all']['git']['g_dev_repo'],config['all']['git']['g_prod_repo'])
+    cleanup(ipv4,config['all']['nginx']['n_folder'],config['all']['sql']['s_database'],config['all']['git']['g_dev_repo'],config['all']['git']['g_prod_repo'])
     os.system(f"sudo certbot --nginx -d {config['all']['nginx']['n_domain']} {config['all']['nginx']['n_sub_domain']}")
-    check_site(config['all']['nginx']['n_folder'],config['all']['nginx']['n_username'],config['all']['nginx']['n_password'],config['all']['nginx']['n_domain'])
+    check_site(ipv4,config['all']['nginx']['n_folder'],config['all']['nginx']['n_username'],config['all']['nginx']['n_password'],config['all']['nginx']['n_domain'])
 
     logging.info("To Flush Clouldfare DNS: https://1.1.1.1/purge-cache/")
     logging.info("To Flush Google DNS: https://developers.google.com/speed/public-dns/cache")
