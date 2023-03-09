@@ -453,7 +453,7 @@ def get_sql(n_folder, s_database):
             path = os.path.join(root, filename)
             print(f"SQL file found at: {path}")
             # Prompt the user to continue with this path
-            choice = input("Do you want to continue with this path? (y/n): ")
+            choice = input("\033[32m Do you want to continue with this path? (y/n): \033[0m")
             if choice.lower() == "y":
                 # User wants to continue, do something with the path here
                 print(f"Processing SQL file at: {path}")
@@ -465,13 +465,14 @@ def get_sql(n_folder, s_database):
                 continue
 
 def cleanup(ipv4,n_folder,s_database,g_dev_repo,g_prod_repo):
+    logging.info("############################################################################################################################################################# CleanUp #")
     import datetime
     now = datetime.datetime.now()
     commit= "IP " + ipv4 + " " + now.strftime("%Y-%m-%d %H:%M:%S")
     os.system(f"rm -rf /tmp/{n_folder}")
     g_dev_repo = g_dev_repo.split("/")[-1][:-4]
     os.system(f"rm -rf /var/www/{n_folder}/{g_dev_repo}")
-    choose=input("Do you want to backup? (y/n): ")
+    choose=input("\033[32m Do you want to backup? (y/n): \033[0m")
     if(choose=='y'):
         config=f"os.system(\"cd /var/www/{n_folder} && sudo mysqldump --defaults-extra-file=$HOME/.sql {s_database} > THE_DATABASE_BACKUP.sql && git add . && git commit -m '{commit}'  && git push\")"
         if(os.path.exists('/root/backup.py')):
@@ -481,11 +482,11 @@ def cleanup(ipv4,n_folder,s_database,g_dev_repo,g_prod_repo):
             config=imports+config
             os.system(f"echo '{config}' > /root/backup.py")
     if(g_prod_repo != ''):
-        os.system(f"cd /var/www/{n_folder} && git add . && git commit -m 'Prod {commit}' && git branch -M master  && git push")
+        print(f"cd /var/www/{n_folder} && git add . && git commit -m 'Prod {commit}' && git branch -M master  && git push")
 
 
 def check_site(ipv4,n_folder,username,password,n_domain):
-    logging.info("############################################################################################################################################################################################## Checking Site #")
+    logging.info("############################################################################################################################################################# Checking Site #")
 
     with open(f'/var/www/{n_folder}/application/config/routes.php', 'r') as f:
         routes = f.read()
@@ -529,9 +530,9 @@ def check_site(ipv4,n_folder,username,password,n_domain):
             errors.append(f'Error on URL {url}: {e}')
 
     if len(errors) > 0:
-        logging.info('Errors found:')
+        logging.error('Errors found:')
         for error in errors:
-            logging.info(error)
+            logging.error(error)
     else:
         logging.info('No errors found.')
 
